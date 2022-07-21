@@ -3,12 +3,19 @@ import tkinter.messagebox
 import customtkinter
 from PIL import Image, ImageTk
 import os
-import recorder
 from threading import Thread
 import time
 import pyaudio
 from queue import Queue
 import shutil
+
+# solve local imports
+import sys
+FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+WORKSPACE = os.path.dirname(FILE_PATH)
+
+sys.path.insert(0, WORKSPACE)
+from input_parser import recorder
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
