@@ -31,7 +31,7 @@ class App(customtkinter.CTk):
 
     def __init__(self):
         super().__init__()
-
+        self.idTrack = 0
         self.tracks = []
         self.audio = pyaudio.PyAudio()
         self.title("zapadapp")
@@ -134,7 +134,8 @@ class App(customtkinter.CTk):
 
     def add_track(self):
         track_frame = customtkinter.CTkFrame(master=self.frame_right)
-        trk = track.Track(track_frame)
+        trk = track.Track(track_frame, self.idTrack)
+        self.idTrack += 1
         trk.show_track(len(self.tracks)+1)
         self.tracks.append(trk)
 

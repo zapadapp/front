@@ -23,11 +23,11 @@ from input_parser import recorder
 PATH = os.path.dirname(os.path.realpath(__file__))
 
 class Track():
-    def __init__(self, track_frame):
+    def __init__(self, track_frame, id_track):
         super().__init__()
 
         self.audio = pyaudio.PyAudio()
-
+        self.id = id_track
         self.master_frame = track_frame
         self.note_switch_var = customtkinter.StringVar(value="chord") 
 
@@ -142,11 +142,11 @@ class Track():
     
     def save_score(self):
         print("saving file")
-        shutil.copy2(os.path.join(FILE_PATH, "tmp/score.png"), "files/score_{}.png".format(time.time()))
+        shutil.copy2(os.path.join(FILE_PATH, "tmp/score.png"), "files/score_{}_{}.png".format(self.id, time.time()))
         shutil.copy2(PATH +"/img/score.png", PATH + "/tmp/")
         image = Image.open(PATH + "/img/score.png").resize((500, 200))
         self.bg_image = ImageTk.PhotoImage(image)
 
         self.image_label.configure(image=self.bg_image)   
-        self.rec.stop()
-        self.rec.close()
+       
+       
