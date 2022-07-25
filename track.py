@@ -34,7 +34,7 @@ class Track():
         recordImg = ImageTk.PhotoImage(Image.open("img/record.png"))
         stopImg = ImageTk.PhotoImage(Image.open("img/stop.png"))
         saveImg = ImageTk.PhotoImage(Image.open("img/save.png"))
-
+        self.deviceChoice = 0
         self.recButton = customtkinter.CTkButton(master=self.master_frame, image=recordImg, text="", bg_color="#FFF", command=self.record_action)
         self.recButton.grid(row=6, column=0, columnspan=1, pady=20, padx=20, sticky="we")
 
@@ -49,7 +49,8 @@ class Track():
         self.frame_info.rowconfigure(0, weight=1)
         self.frame_info.columnconfigure(0, weight=1)
 
-        image = Image.open(PATH + "/img/empty-score.png").resize((500, 200))
+        image = Image.open(PATH + "/img/score.png").resize((500, 200))
+        shutil.copy2(PATH +"/img/score.png", PATH + "/tmp/")
         self.bg_image = ImageTk.PhotoImage(image)
 
         self.image_label = tkinter.Label(master=self.frame_info, image=self.bg_image)
@@ -100,12 +101,8 @@ class Track():
         self.combobox_1.configure(values= newValues)        
 
     def record_action(self):
-        try:
-            os.remove(os.path.join(FILE_PATH,"tmp/score.png"))
-        except OSError as e:
-            print(e.errno)
 
-        self.note_q = Queue()
+        self.note_q = Queue() 
         self.rec = recorder.Recorder("file.wav", "score")
         self.rec.setup(self.deviceChoice)
 
@@ -120,7 +117,9 @@ class Track():
 
     def stop_action(self):    
         print("stop button")
+        ##FALTA POPUP QUE CONSULTA SI DESEA GUARDAR
         self.rec.stop()
+        ##EL CLOSE ROMPE TOOO
         self.rec.close()
 
     def refresh_score(self):
@@ -144,8 +143,10 @@ class Track():
     def save_score(self):
         print("saving file")
         shutil.copy2(os.path.join(FILE_PATH, "tmp/score.png"), "files/score_{}.png".format(time.time()))
-        os.remove(os.path.join(FILE_PATH, "tmp/score.png"))
-        image = Image.open(PATH + "/img/empty-score.png").resize((500, 200))
+        shutil.copy2(PATH +"/img/score.png", PATH + "/tmp/")
+        image = Image.open(PATH + "/img/score.png").resize((500, 200))
         self.bg_image = ImageTk.PhotoImage(image)
 
-        self.image_label.configure(image=self.bg_image)    
+        self.image_label.configure(image=self.bg_image)   
+        self.rec.stop()
+        self.rec.close()
