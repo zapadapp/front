@@ -1,5 +1,6 @@
 import tkinter
 import tkinter.messagebox
+from turtle import bgcolor
 import customtkinter
 from PIL import Image, ImageTk
 import os
@@ -8,6 +9,7 @@ import time
 import pyaudio
 from queue import Queue
 import shutil
+import track
 
 # solve local imports
 import sys
@@ -29,7 +31,8 @@ class App(customtkinter.CTk):
 
     def __init__(self):
         super().__init__()
-
+        self.idTrack = 0
+        self.tracks = []
         self.audio = pyaudio.PyAudio()
         self.title("zapadapp")
         self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
@@ -47,7 +50,7 @@ class App(customtkinter.CTk):
         self.frame_left.grid(row=0, column=0, sticky="nswe")
 
         self.frame_right = customtkinter.CTkFrame(master=self)
-        self.frame_right.grid(row=0, column=1, sticky="nswe", padx=20, pady=20)
+        self.frame_right.grid(row=0, column=1, sticky="nswe", padx=10, pady=10)
 
         # ============ frame_left ============
 
@@ -96,152 +99,46 @@ class App(customtkinter.CTk):
         self.frame_right.columnconfigure((0, 1), weight=1)
         self.frame_right.columnconfigure(2, weight=0)
 
-    
-        # ============ frame_info ============
+        self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
+        self.add_delete_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nw')
+
+        self.tracks_frame = customtkinter.CTkFrame(master=self.frame_right)
+        self.tracks_frame.grid(row=1, column=0, columnspan=3, padx=10, pady=10, sticky='nw')
 
 
-        self.frame_info = customtkinter.CTkFrame(master=self.frame_right)
-        self.frame_info.grid(row=2, column=0, columnspan=3, rowspan=4, pady=20, padx=20, sticky="we")
-        self.frame_info.rowconfigure(0, weight=1)
-        self.frame_info.columnconfigure(0, weight=1)
+        addImg = ImageTk.PhotoImage(Image.open("img/add.png"))
 
-        # self.label_info_1 = customtkinter.CTkLabel(master=self.frame_right,
-        #                                            text="CTkLabel: Lorem ipsum dolor sit,\n" +
-        #                                                 "amet consetetur sadipscing elitr,\n" +
-        #                                                 "sed diam nonumy eirmod tempor" ,
-        #                                            height=100,
-        #                                            fg_color=("white", "gray38"),  # <- custom tuple-color
-        #                                            justify=tkinter.LEFT)
-        # self.label_info_1.grid(column=1, row=2, sticky="nwe", padx=15, pady=15)
+        self.addButton = customtkinter.CTkButton(master=self.add_delete_frame, image=addImg, text="", bg_color="#FFF", command=self.add_track)
+        self.addButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nw")
 
+        deleteImg = ImageTk.PhotoImage(Image.open("img/delete.png"))
 
-        image = Image.open(PATH + "/img/empty-score.png").resize((500, 200))
-        self.bg_image = ImageTk.PhotoImage(image)
+        self.deleteButton = customtkinter.CTkButton(master=self.add_delete_frame, image=deleteImg, text="", bg_color="#FFF", command=self.delete_track)
+        self.deleteButton.grid(row=0, column=1, columnspan=1, pady=20, padx=20, sticky="nw")
 
-        self.image_label = tkinter.Label(master=self.frame_info, image=self.bg_image)
-        self.image_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        # ============ frame_right ============
-       
-        self.combobox_1 = customtkinter.CTkComboBox(master=self.frame_right,
-                                                    values=[ "Device 1", "Device 2"], command=self.combobox_func)
-        self.combobox_1.grid(row=0, column=0, columnspan=1, pady=10, padx=20, sticky="we")
-
-        recordImg = ImageTk.PhotoImage(Image.open("img/record.png"))
-        stopImg = ImageTk.PhotoImage(Image.open("img/stop.png"))
-        saveImg = ImageTk.PhotoImage(Image.open("img/save.png"))
-
-        self.recButton = customtkinter.CTkButton(master=self.frame_right, image=recordImg, text="", bg_color="#FFF", command=self.record_action)
-        self.recButton.grid(row=6, column=0, columnspan=1, pady=20, padx=20, sticky="we")
-
-        self.stopButton = customtkinter.CTkButton(master=self.frame_right, image=stopImg, text="", command=self.stop_action)
-        self.stopButton.grid(row=6, column=1, columnspan=1, pady=20, padx=20, sticky="we")
- 
-        self.saveButton = customtkinter.CTkButton(master=self.frame_right, image=saveImg, text="",command=self.save_score)
-        self.saveButton.grid(row=6, column=2, columnspan=1, pady=20, padx=20, sticky="we")
-
-
-        self.note_label = customtkinter.CTkLabel(master=self.frame_right, text="Played note: -")
-        self.note_label.grid(row=7, column=0, pady=0, padx=20, sticky="w")
-        
-        # set default values
         self.optionmenu_1.set("Dark")
-        #self.button_3.configure(state="disabled", text="Disabled CTkButton")
-        self.combobox_1.set("Select device")
-        #self.radio_button_1.select()
-        #self.slider_1.set(0.2)
-        #self.slider_2.set(0.7)
-        #self.progressbar.set(0.5)
-        #self.switch_2.select()
-        #self.radio_button_3.configure(state=tkinter.DISABLED)
-        #self.check_box_1.configure(state=tkinter.DISABLED, text="CheckBox disabled")
-        #self.check_box_2.select()
 
-    def button_event(self):
-        print("Button pressed")
-
-    def record_action(self):
-        try:
-            os.remove("tmp/score.png")
-        except OSError as e:
-            print(e.errno)
-
-        self.note_q = Queue()
-        self.rec = recorder.Recorder("file.wav", "score")
-        self.rec.setup(self.deviceChoice)
-
-        noteThread = Thread(target = self.show_note)
-        noteThread.start()
-
-        recorderThread = Thread(target = self.rec.record, args =(self.note_q, ))
-        recorderThread.start()
-
-        imgUpdater = Thread(target = self.refresh_score, args = ())
-        imgUpdater.start()
-
-    def stop_action(self):    
-        print("stop button")
-        self.rec.stop()
-        self.rec.close()
-
-    def refresh_score(self):
-        while True:
-            try:
-                image = Image.open(PATH + "/tmp/score.png").resize((500, 200))
-                self.bg_image = ImageTk.PhotoImage(image)
-
-                self.image_label.configure(image=self.bg_image)
-                self.image_label.image = image
-            except OSError as e:
-                print(e.errno)
-
-            time.sleep(0.5)
-
-    def show_note(self):
-        while True:
-            note = self.note_q.get()
-            self.note_label.configure(text="Played note: {}".format(note))
-
-    def update_devices(self):
-        print("update devices")    
-
-    def change_appearance_mode(self, new_appearance_mode):
-        customtkinter.set_appearance_mode(new_appearance_mode)
     
-    def get_devices(self):
-        info = self.audio.get_host_api_info_by_index(0)
-        numdevices = info.get('deviceCount')
-        newValues = []
-        # show all input devices found.
-        # print("Input Device id ", i, " - ", self.audio.get_device_info_by_host_api_device_index(0, i).get('name'))
-
-        for i in range(0, numdevices):
-            if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
-                newValues.append("{} #{}".format(self.audio.get_device_info_by_host_api_device_index(0, i).get('name'),i))
-
-        self.combobox_1.configure(values= newValues)        
-    
-    def combobox_func(self, choice):
-        if choice == "Select device":
-            return
-
-        s = choice.split("#")
-        self.deviceChoice = int(s[1])
-
     def on_closing(self, event=0):
         self.destroy()
 
-    def save_score(self):
-        print("saving file")
-        shutil.copy2("tmp/score.png", "files/score_{}.png".format(time.time()))
-        os.remove("tmp/score.png")
-        image = Image.open(PATH + "/img/empty-score.png").resize((500, 200))
-        self.bg_image = ImageTk.PhotoImage(image)
+    def button_event(self):
+        print("button pressed")   
 
-        self.image_label.configure(image=self.bg_image)
-    
+    def delete_track(self):
+        deletedTrack = self.tracks.pop()
+        deletedTrack.hide_track()
+        
+    def change_appearance_mode(self, new_appearance_mode):
+        customtkinter.set_appearance_mode(new_appearance_mode)
 
+    def add_track(self):
+        track_frame = customtkinter.CTkFrame(master=self.frame_right)
+        trk = track.Track(track_frame, self.idTrack)
+        self.idTrack += 1
+        trk.show_track(len(self.tracks)+1)
+        self.tracks.append(trk)
 
 if __name__ == "__main__":
     app = App()
-    app.get_devices()
     app.mainloop()
