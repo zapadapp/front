@@ -138,7 +138,8 @@ class App(customtkinter.CTk):
         self.idTrack += 1
         trk.show_track(len(self.tracks)+1)
         self.tracks.append(trk)
-
+    
+    
 if __name__ == "__main__":
     app = App()
     app.mainloop()
