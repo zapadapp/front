@@ -43,7 +43,8 @@ class Track():
  
         self.saveButton = customtkinter.CTkButton(master=self.master_frame, image=saveImg, text="",command=self.save_score)
         self.saveButton.grid(row=6, column=2, columnspan=1, pady=20, padx=20, sticky="we")
-
+        self.note_label =customtkinter.CTkLabel(master=self.master_frame,text="Aqui aparecen los acordes",text_color="white",text_font="Arial")
+        self.note_label.grid(row=7, column=1, columnspan=1, pady=20, padx=20, sticky="we")
         self.frame_info = customtkinter.CTkFrame(master=self.master_frame)
         self.frame_info.grid(row=2, column=0, columnspan=3, rowspan=4, pady=20, padx=20, sticky="we")
         self.frame_info.rowconfigure(0, weight=1)
@@ -117,9 +118,7 @@ class Track():
 
     def stop_action(self):    
         print("stop button")
-        ##FALTA POPUP QUE CONSULTA SI DESEA GUARDAR
         self.rec.stop()
-        ##EL CLOSE ROMPE TOOO
         self.rec.close()
 
     def refresh_score(self):
