@@ -44,8 +44,8 @@ class Track():
         self.note_switch.deselect()
         self.combobox_1.set("Select device")
 
-        image = Image.open(PATH + "/img/score.png").resize((500, 200))
-        shutil.copy2(PATH +"/img/score.png", PATH + "/tmp/")
+        image = Image.open(FILE_PATH + "/img/score.png").resize((500, 200))
+        #shutil.copy2(PATH +"/img/score.png", PATH + "/tmp/")
         self.bg_image = ImageTk.PhotoImage(image)
 
         self.image_label = customtkinter.CTkLabel(master=self.master_frame, image=self.bg_image)
@@ -80,9 +80,6 @@ class Track():
     def hide_track(self):
         self.master_frame.grid_forget()
 
-    def button_event(self):
-        print("track")
-
     def combobox_func(self, choice):
         if choice == "Select device":
             return
@@ -104,9 +101,9 @@ class Track():
         self.combobox_1.configure(values= newValues)        
 
     def record_action(self):
-
+        self.cleanScore()
         self.note_q = Queue() 
-        self.rec = recorder.Recorder("file.wav", "score")
+        self.rec = recorder.Recorder("file{}.wav".format(self.id), "score{}".format(self.id))
         self.rec.setup(self.deviceChoice)
 
         noteThread = Thread(target = self.show_note)
@@ -126,15 +123,16 @@ class Track():
     def refresh_score(self):
         while True:
             try:
-                image = Image.open(FILE_PATH + "/tmp/score.png").resize((500, 200))
+                image = Image.open(FILE_PATH + "/tmp/score{}.png".format(self.id)).resize((500, 200))
                 self.bg_image = ImageTk.PhotoImage(image)
 
                 self.image_label.configure(image=self.bg_image)
                 self.image_label.image = image
             except OSError as e:
-                print(e.errno)
-
-            time.sleep(0.5)
+                # we do not care about this error so we just continue
+                continue
+        
+            time.sleep(0.1)        
 
     def show_note(self):
         while True:
@@ -142,12 +140,17 @@ class Track():
             self.note_label.configure(text="Played note: {}".format(note))
     
     def save_score(self):
-        print("saving file")
-        shutil.copy2(os.path.join(FILE_PATH, "tmp/score.png"), "files/score_{}_{}.png".format(self.id, time.time()))
-        shutil.copy2(PATH +"/img/score.png", PATH + "/tmp/")
-        image = Image.open(PATH + "/img/score.png").resize((500, 200))
+        shutil.copy2(os.path.join(FILE_PATH, "tmp/score{}.png".format(self.id)), os.path.join(FILE_PATH,"files/score_{}_{}.png".format(self.id, time.time())))
+        #shutil.copy2(PATH +"/img/score{}.png".format(self.id), PATH + "/tmp/")
+        self.cleanScore()
+       
+    def cleanScore(self):
+        try:
+            os.remove(os.path.join(FILE_PATH, "tmp/score{}.png".format(self.id)))
+        except OSError as e:
+            print("could not delete score file")
+
+        image = Image.open(FILE_PATH + "/img/score.png").resize((500, 200), Image.ANTIALIAS)
         self.bg_image = ImageTk.PhotoImage(image)
 
-        self.image_label.configure(image=self.bg_image)   
-       
-       
+        self.image_label.configure(image=self.bg_image)  
