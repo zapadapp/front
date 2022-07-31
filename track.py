@@ -31,48 +31,50 @@ class Track():
         self.master_frame = track_frame
         self.note_switch_var = customtkinter.StringVar(value="chord") 
 
-        recordImg = ImageTk.PhotoImage(Image.open("img/record.png"))
-        stopImg = ImageTk.PhotoImage(Image.open("img/stop.png"))
-        saveImg = ImageTk.PhotoImage(Image.open("img/save.png"))
-        self.deviceChoice = 0
-        self.recButton = customtkinter.CTkButton(master=self.master_frame, image=recordImg, text="", bg_color="#FFF", command=self.record_action)
-        self.recButton.grid(row=6, column=0, columnspan=1, pady=20, padx=20, sticky="we")
+        self.track_label =customtkinter.CTkLabel(master=self.master_frame,text="Track #{}".format(self.id),text_color="white",text_font="Arial")
+        self.track_label.grid(row=0, column=0, columnspan=1, sticky="nwse")
+        self.combobox_1 = customtkinter.CTkComboBox(master=self.master_frame,
+                                                    values=[ "Device 1", "Device 2"], command=self.combobox_func)
+        self.combobox_1.grid(row=0, column=1, columnspan=2, pady=10, padx=20, sticky="nw")
 
-        self.stopButton = customtkinter.CTkButton(master=self.master_frame, image=stopImg, text="", command=self.stop_action)
-        self.stopButton.grid(row=6, column=1, columnspan=1, pady=20, padx=20, sticky="we")
- 
-        self.saveButton = customtkinter.CTkButton(master=self.master_frame, image=saveImg, text="",command=self.save_score)
-        self.saveButton.grid(row=6, column=2, columnspan=1, pady=20, padx=20, sticky="we")
-        self.note_label =customtkinter.CTkLabel(master=self.master_frame,text="Aqui aparecen los acordes",text_color="white",text_font="Arial")
-        self.note_label.grid(row=7, column=1, columnspan=1, pady=20, padx=20, sticky="we")
-        self.frame_info = customtkinter.CTkFrame(master=self.master_frame)
-        self.frame_info.grid(row=2, column=0, columnspan=3, rowspan=4, pady=20, padx=20, sticky="we")
-        self.frame_info.rowconfigure(0, weight=1)
-        self.frame_info.columnconfigure(0, weight=1)
+        self.note_switch = customtkinter.CTkSwitch(master=self.master_frame,text="Note/Chord Detection",
+                                   variable=self.note_switch_var, onvalue="chord", offvalue="note")
+        self.note_switch.grid(row=0, column=2, columnspan=1, pady=10, padx=20, sticky="ne")
+
+        self.note_switch.deselect()
+        self.combobox_1.set("Select device")
 
         image = Image.open(PATH + "/img/score.png").resize((500, 200))
         shutil.copy2(PATH +"/img/score.png", PATH + "/tmp/")
         self.bg_image = ImageTk.PhotoImage(image)
 
-        self.image_label = tkinter.Label(master=self.frame_info, image=self.bg_image)
+        self.image_label = customtkinter.CTkLabel(master=self.master_frame, image=self.bg_image)
         self.image_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        self.image_label.grid(row=1, column=0, columnspan=2, pady=10, padx=20, sticky="nwse")
+
+        recordImg = ImageTk.PhotoImage(Image.open("img/record.png"))
+        stopImg = ImageTk.PhotoImage(Image.open("img/stop.png"))
+        saveImg = ImageTk.PhotoImage(Image.open("img/save.png"))
+        self.deviceChoice = 0
+        self.recButton = customtkinter.CTkButton(master=self.master_frame, image=recordImg, text="", command=self.record_action)
+        self.recButton.grid(row=2, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
+
+        self.stopButton = customtkinter.CTkButton(master=self.master_frame, image=stopImg, text="", command=self.stop_action)
+        self.stopButton.grid(row=2, column=1, columnspan=1, pady=20, padx=20, sticky="nwse")
+ 
+        self.saveButton = customtkinter.CTkButton(master=self.master_frame, image=saveImg, text="",command=self.save_score)
+        self.saveButton.grid(row=2, column=2, columnspan=1, pady=20, padx=20, sticky="nwse")
+       
+        self.note_label =customtkinter.CTkLabel(master=self.master_frame,text="Acordes/Notas",text_color="white",text_font="Arial")
+        self.note_label.grid(row=1, column=2, columnspan=1, pady=20, padx=20, sticky="nwse")
+        
         # ============ frame_right ============
        
-        self.combobox_1 = customtkinter.CTkComboBox(master=self.master_frame,
-                                                    values=[ "Device 1", "Device 2"], command=self.combobox_func)
-        self.combobox_1.grid(row=0, column=0, columnspan=1, pady=10, padx=20, sticky="we")
-
-        self.note_switch = customtkinter.CTkSwitch(master=self.master_frame,text="Note/Chord Detection",
-                                   variable=self.note_switch_var, onvalue="chord", offvalue="note")
-        self.note_switch.grid(row=1, column=4, columnspan=1, pady=10, padx=20, sticky="ne")
-
-        self.note_switch.deselect()
-        self.combobox_1.set("Select device")
 
 
 
     def show_track(self,x):
-        self.master_frame.grid(row=x, column=0, sticky="nw", padx=10, pady=10)
+        self.master_frame.grid(row=x, column=0, sticky="nwe", padx=5, pady=5)
         self.get_devices()
 
     def hide_track(self):

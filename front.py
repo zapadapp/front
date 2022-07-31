@@ -1,5 +1,6 @@
 import tkinter
 import tkinter.messagebox
+from tkinter import ttk
 from turtle import bgcolor
 import customtkinter
 from PIL import Image, ImageTk
@@ -10,6 +11,7 @@ import pyaudio
 from queue import Queue
 import shutil
 import track
+
 
 # solve local imports
 import sys
@@ -93,28 +95,53 @@ class App(customtkinter.CTk):
 
         # ============ frame_right ============
 
-        # configure grid layout (3x7)
-        self.frame_right.rowconfigure((0, 1, 2, 3), weight=1)
-        self.frame_right.rowconfigure(7, weight=10)
-        self.frame_right.columnconfigure((0, 1), weight=1)
-        self.frame_right.columnconfigure(2, weight=0)
+        self.frame_right.rowconfigure(0, weight=0)
+        self.frame_right.rowconfigure(1, weight=1)
+        self.frame_right.columnconfigure(0, weight=1)
+        #self.frame_right.columnconfigure((0, 1), weight=1)
+        #self.frame_right.columnconfigure(2, weight=0)
 
         self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
-        self.add_delete_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nw')
+        self.add_delete_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nwse')
+        self.add_delete_frame.rowconfigure(0, weight=1)
+        self.add_delete_frame.columnconfigure((0,1), weight=1)
 
         self.tracks_frame = customtkinter.CTkFrame(master=self.frame_right)
-        self.tracks_frame.grid(row=1, column=0, columnspan=3, padx=10, pady=10, sticky='nw')
+        self.tracks_frame.grid(row=1, column=0, columnspan=3, sticky='nwse')
+        self.tracks_frame.rowconfigure(0, weight=1)
+        self.tracks_frame.columnconfigure(0, weight=1)
 
+        self.tracks_canvas = customtkinter.CTkCanvas(master=self.tracks_frame,bg='#303030')
+        self.tracks_canvas.grid(row=0,column=0,sticky='nwse')
+        self.tracks_canvas.rowconfigure(0, weight=1)
+        self.tracks_canvas.columnconfigure(0, weight=1)
 
-        addImg = ImageTk.PhotoImage(Image.open("img/add.png"))
+        #### scrollbar
 
-        self.addButton = customtkinter.CTkButton(master=self.add_delete_frame, image=addImg, text="", bg_color="#FFF", command=self.add_track)
-        self.addButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nw")
+        self.scroll = ttk.Scrollbar(master=self.tracks_frame, orient='vertical', command=self.tracks_canvas.yview)
+        self.scroll.grid(row=0,column=1,sticky='ns')
+        self.tracks_canvas.configure(yscrollcommand=self.scroll.set)
+
+        self.tracks_subframe = customtkinter.CTkFrame(master=self.tracks_canvas)
+        self.tracks_subframe.grid(row=0, column=0, sticky='nwse')
+        self.tracks_subframe.rowconfigure(0, weight=1)
+        self.tracks_subframe.columnconfigure(0, weight=1)
+
+        self.tracks_canvas.create_window((0,0), window=self.tracks_subframe, anchor='nw')
+
+        self.tracks_subframe.update_idletasks()  
+
+        self.addImgRaw = Image.open("img/add.png")
+        self.addImg = ImageTk.PhotoImage(self.addImgRaw, Image.ANTIALIAS)
+
+        self.addButton = customtkinter.CTkButton(master=self.add_delete_frame,image=self.addImg, text="",command=self.add_track)
+        self.addButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
 
         deleteImg = ImageTk.PhotoImage(Image.open("img/delete.png"))
 
         self.deleteButton = customtkinter.CTkButton(master=self.add_delete_frame, image=deleteImg, text="", bg_color="#FFF", command=self.delete_track)
-        self.deleteButton.grid(row=0, column=1, columnspan=1, pady=20, padx=20, sticky="nw")
+        self.deleteButton.grid(row=0, column=1, columnspan=1, pady=20, padx=20, sticky="nwse")
+
 
         self.optionmenu_1.set("Dark")
 
@@ -133,11 +160,27 @@ class App(customtkinter.CTk):
         customtkinter.set_appearance_mode(new_appearance_mode)
 
     def add_track(self):
-        track_frame = customtkinter.CTkFrame(master=self.frame_right)
+        track_frame = customtkinter.CTkFrame(master=self.tracks_subframe)
+        track_frame.rowconfigure((0,1,2,3), weight=1)
+        track_frame.columnconfigure((0,1,2), weight=1)
+
         trk = track.Track(track_frame, self.idTrack)
         self.idTrack += 1
         trk.show_track(len(self.tracks)+1)
         self.tracks.append(trk)
+        self.bbox = self.tracks_canvas.bbox("all") 
+        self.tracks_canvas.configure(scrollregion=self.bbox)
+
+        
+        
+
+
+    # def resizeButton(self, e):
+    #     rawImg = Image.open("img/save.png")
+    #     resImg =rawImg.resize((e.width,e.height), Image.ANTIALIAS)
+    #     self.addImg = ImageTk.PhotoImage(resImg)
+    #     self.label1.configure(image = resImg)  
+        
     
     
 if __name__ == "__main__":
