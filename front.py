@@ -1,6 +1,6 @@
 import tkinter
 import tkinter.messagebox
-from tkinter import ttk
+from tkinter import ttk, filedialog
 from turtle import bgcolor
 import customtkinter
 from PIL import Image, ImageTk
@@ -77,12 +77,12 @@ class App(customtkinter.CTk):
 
         self.button_1 = customtkinter.CTkButton(master=self.frame_left,
                                                 text="Play!",
-                                                command=self.button_event)
+                                                command=self.playBtnEvent)
         self.button_1.grid(row=2, column=0, pady=10, padx=20)
 
         self.button_2 = customtkinter.CTkButton(master=self.frame_left,
                                                 text="Saved",
-                                                command=self.button_event)
+                                                command=self.savedBtnEvent)
         self.button_2.grid(row=3, column=0, pady=10, padx=20)
 
         self.label_mode = customtkinter.CTkLabel(master=self.frame_left, text="Appearance Mode:")
@@ -101,15 +101,15 @@ class App(customtkinter.CTk):
         #self.frame_right.columnconfigure((0, 1), weight=1)
         #self.frame_right.columnconfigure(2, weight=0)
 
-        self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
-        self.add_delete_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nwse')
-        self.add_delete_frame.rowconfigure(0, weight=1)
-        self.add_delete_frame.columnconfigure((0,1), weight=1)
+        # saved_frame will be gridded when pressing Saved button
+        self.saved_frame = customtkinter.CTkFrame(master=self.frame_right)
 
+        # add_delete_frame will be gridded when pressing Play! button
+        self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
+
+        # tracks_frame will be gridded when pressing Play! button
         self.tracks_frame = customtkinter.CTkFrame(master=self.frame_right)
-        self.tracks_frame.grid(row=1, column=0, columnspan=3, sticky='nwse')
-        self.tracks_frame.rowconfigure(0, weight=1)
-        self.tracks_frame.columnconfigure(0, weight=1)
+        
 
         self.tracks_canvas = customtkinter.CTkCanvas(master=self.tracks_frame,bg='#303030')
         self.tracks_canvas.grid(row=0,column=0,sticky='nwse')
@@ -143,6 +143,15 @@ class App(customtkinter.CTk):
         self.deleteButton.grid(row=0, column=1, columnspan=1, pady=20, padx=20, sticky="nwse")
 
 
+
+        self.openSavedButton = customtkinter.CTkButton(master=self.saved_frame, text="Select saved score", command=self.openSavedImgEvent)
+        self.openSavedButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
+
+        self.savedImgLabel = customtkinter.CTkLabel(master=self.saved_frame, text="")
+        self.savedImgLabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        self.savedImgLabel.grid(row=1, column=0, columnspan=3, sticky="nwse")
+
+
         self.optionmenu_1.set("Dark")
 
     
@@ -171,7 +180,34 @@ class App(customtkinter.CTk):
         self.bbox = self.tracks_canvas.bbox("all") 
         self.tracks_canvas.configure(scrollregion=self.bbox)
 
+    def savedBtnEvent(self):
+        print("saved")
+        self.add_delete_frame.grid_forget()
+        self.tracks_frame.grid_forget()
+
+        self.saved_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nwse')
+        self.saved_frame.rowconfigure(0, weight=4)
+        self.saved_frame.columnconfigure(0, weight=4)  
+
+    def playBtnEvent(self):
+        print("play")  
+        self.saved_frame.grid_forget()
         
+        self.add_delete_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nwse')
+        self.add_delete_frame.rowconfigure(0, weight=1)
+        self.add_delete_frame.columnconfigure((0,1), weight=1)  
+        
+        self.tracks_frame.grid(row=1, column=0, columnspan=3, sticky='nwse')
+        self.tracks_frame.rowconfigure(0, weight=1)
+        self.tracks_frame.columnconfigure(0, weight=1)
+
+    def openSavedImgEvent(self):
+        filename = filedialog.askopenfilename(title='open')
+
+        image = Image.open(filename).resize((self.saved_frame.winfo_width()-10, 200), Image.ANTIALIAS)
+        self.savedImg = ImageTk.PhotoImage(image)
+        self.savedImgLabel.configure(image=self.savedImg)
+     
         
 
 
