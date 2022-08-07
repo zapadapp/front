@@ -1,12 +1,10 @@
 import tkinter
 import tkinter.messagebox
-from turtle import bgcolor
 import customtkinter
 from PIL import Image, ImageTk
 import os
 from threading import Thread
 import time
-from numpy import flexible
 import pyaudio
 from queue import Queue
 import shutil
@@ -68,11 +66,7 @@ class Track():
         self.note_label =customtkinter.CTkLabel(master=self.master_frame,text="Acordes/Notas",text_color="white",text_font="Arial")
         self.note_label.grid(row=1, column=2, columnspan=1, pady=20, padx=20, sticky="nwse")
         
-        # ============ frame_right ============
        
-
-
-
     def show_track(self,x):
         self.master_frame.grid(row=x, column=0, sticky="nwe", padx=5, pady=5)
         self.get_devices()
@@ -117,6 +111,7 @@ class Track():
 
     def stop_action(self):    
         print("stop button")
+        self.rec.reproduce()
         self.rec.stop()
         self.rec.close()
 
