@@ -18,7 +18,7 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 
 class App(customtkinter.CTk):
 
-    WIDTH = 1000
+    WIDTH = 950
     HEIGHT = 1100
 
     def __init__(self):
@@ -52,7 +52,7 @@ class App(customtkinter.CTk):
 
         # configure grid layout (1x11)
         self.frame_left.grid_rowconfigure(0, minsize=10)   # empty row with minsize as spacing
-        self.frame_left.grid_rowconfigure(5, weight=1)  # empty row as spacing
+        self.frame_left.grid_rowconfigure(6, weight=1)  # empty row as spacing
         self.frame_left.grid_rowconfigure(8, minsize=20)    # empty row with minsize as spacing
         self.frame_left.grid_rowconfigure(11, minsize=10)  # empty row with minsize as spacing
 
@@ -78,6 +78,20 @@ class App(customtkinter.CTk):
                                                 command=self.savedBtnEvent)
         self.saved_button.grid(row=3, column=0, pady=10, padx=20)
 
+        # create add track menu button to add tracks
+        self.add_track_button = customtkinter.CTkButton(master=self.frame_left,
+                                                text="Add track",
+                                                fg_color="#00A90B",
+                                                hover_color="#009C0A",
+                                                command=self.add_track)
+
+        # create delete track menu button to delete tracks
+        self.delete_track_button = customtkinter.CTkButton(master=self.frame_left,
+                                                text="Delete track",
+                                                fg_color="#AF0000",
+                                                hover_color="#9C0000",
+                                                command=self.delete_track)
+
         self.label_mode = customtkinter.CTkLabel(master=self.frame_left, text="Appearance Mode:")
         self.label_mode.grid(row=9, column=0, pady=0, padx=20, sticky="w")
 
@@ -98,11 +112,11 @@ class App(customtkinter.CTk):
         self.saved_frame = customtkinter.CTkFrame(master=self.frame_right)
 
         # add_delete_frame will be gridded when pressing Play! button
-        self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
+        #self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
 
         # tracks_frame will be gridded when pressing Play! button
-        # create frame for add and delete tracks button. This frame will be gridded when play button is pressed.
-        self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
+        # create frame for add and delete tracks button. This frame will be gridded when play button.
+        #self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
       
         # create tracks frame
         self.tracks_frame = customtkinter.CTkFrame(master=self.frame_right)
@@ -130,19 +144,19 @@ class App(customtkinter.CTk):
         self.tracks_subframe.update_idletasks()  
 
         # create add track image
-        self.addImgRaw = Image.open("img/add.png")
-        self.addImg = ImageTk.PhotoImage(self.addImgRaw, Image.ANTIALIAS)
+        #self.addImgRaw = Image.open("img/add.png")
+        #self.addImg = ImageTk.PhotoImage(self.addImgRaw, Image.ANTIALIAS)
 
         # create add track button
-        self.addButton = customtkinter.CTkButton(master=self.add_delete_frame,image=self.addImg, text="",command=self.add_track)
-        self.addButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
+        #self.addButton = customtkinter.CTkButton(master=self.add_delete_frame,image=self.addImg, text="",command=self.add_track)
+        #self.addButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
 
         # create delete track image
-        deleteImg = ImageTk.PhotoImage(Image.open("img/delete.png"))
+        #deleteImg = ImageTk.PhotoImage(Image.open("img/delete.png"))
 
         # create delete track button
-        self.deleteButton = customtkinter.CTkButton(master=self.add_delete_frame, image=deleteImg, text="", bg_color="#FFF", command=self.delete_track)
-        self.deleteButton.grid(row=0, column=1, columnspan=1, pady=20, padx=20, sticky="nwse")
+        #self.deleteButton = customtkinter.CTkButton(master=self.add_delete_frame, image=deleteImg, text="", bg_color="#FFF", command=self.delete_track)
+        #self.deleteButton.grid(row=0, column=1, columnspan=1, pady=20, padx=20, sticky="nwse")
 
         # create button to open saved files        
         self.openSavedButton = customtkinter.CTkButton(master=self.saved_frame, text="Select saved score", command=self.openSavedImgEvent)
@@ -183,8 +197,10 @@ class App(customtkinter.CTk):
 
         # create a weighted frame for the new track
         track_frame = customtkinter.CTkFrame(master=self.tracks_subframe)
-        track_frame.rowconfigure((0,1,2,3), weight=1)
-        track_frame.columnconfigure((0,1,2), weight=1)
+        track_frame.rowconfigure((0,1,2), weight=1)
+        track_frame.columnconfigure((0,2,3), weight=1)
+        track_frame.columnconfigure(1, weight=5)
+
 
         # create a track
         trk = track.Track(track_frame, self.idTrack)
@@ -197,8 +213,14 @@ class App(customtkinter.CTk):
         self.tracks_canvas.configure(scrollregion=self.bbox)
 
     def savedBtnEvent(self):
-        self.add_delete_frame.grid_forget()
+        #self.add_delete_frame.grid_forget()
         self.tracks_frame.grid_forget()
+
+        self.add_track_button.grid_forget()
+        self.delete_track_button.grid_forget()
+
+        self.saved_button.grid(row=3, column=0, pady=10, padx=20)
+
 
         self.saved_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nwse')
         self.saved_frame.rowconfigure(0, weight=4)
@@ -207,31 +229,25 @@ class App(customtkinter.CTk):
     def playBtnEvent(self):
         self.saved_frame.grid_forget()
         
-        self.add_delete_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nwse')
-        self.add_delete_frame.rowconfigure(0, weight=1)
-        self.add_delete_frame.columnconfigure((0,1), weight=1)  
+        # self.add_delete_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nwse')
+        # self.add_delete_frame.rowconfigure(0, weight=1)
+        # self.add_delete_frame.columnconfigure((0,1), weight=1)  
         
+        self.add_track_button.grid(row=3, column=0, pady=10, padx=20)
+        self.delete_track_button.grid(row=4, column=0, pady=10, padx=20)
+        self.saved_button.grid(row=5, column=0, pady=10, padx=20)
+
         self.tracks_frame.grid(row=1, column=0, columnspan=3, sticky='nwse')
         self.tracks_frame.rowconfigure(0, weight=1)
         self.tracks_frame.columnconfigure(0, weight=1)
 
     def openSavedImgEvent(self):
-        filename = filedialog.askopenfilename(title='open')
+        filename = filedialog.askopenfilename(initialdir=os.path.join(FILE_PATH, "files"),title='Select a score')
 
         image = Image.open(filename).resize((self.saved_frame.winfo_width()-10, 200), Image.ANTIALIAS)
         self.savedImg = ImageTk.PhotoImage(image)
         self.savedImgLabel.configure(image=self.savedImg)
-     
-        
 
-
-    # def resizeButton(self, e):
-    #     rawImg = Image.open("img/save.png")
-    #     resImg =rawImg.resize((e.width,e.height), Image.ANTIALIAS)
-    #     self.addImg = ImageTk.PhotoImage(resImg)
-    #     self.label1.configure(image = resImg)  
-        
-    
     
 if __name__ == "__main__":
     app = App()

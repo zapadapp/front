@@ -30,14 +30,14 @@ class Track():
         self.note_switch_var = customtkinter.StringVar(value="chord") 
 
         self.track_label =customtkinter.CTkLabel(master=self.master_frame,text="Track #{}".format(self.id),text_color="white",text_font="Arial")
-        self.track_label.grid(row=0, column=0, columnspan=1, sticky="nwse")
+        self.track_label.grid(row=0, column=0, sticky="nwse")
         self.combobox_1 = customtkinter.CTkComboBox(master=self.master_frame,
                                                     values=[ "Device 1", "Device 2"], command=self.combobox_func)
-        self.combobox_1.grid(row=0, column=1, columnspan=2, pady=10, padx=20, sticky="nw")
+        self.combobox_1.grid(row=1, column=0)
 
-        self.note_switch = customtkinter.CTkSwitch(master=self.master_frame,text="Note/Chord Detection",
+        self.note_switch = customtkinter.CTkSwitch(master=self.master_frame,text="Note/Chord",
                                    variable=self.note_switch_var, onvalue="chord", offvalue="note")
-        self.note_switch.grid(row=0, column=2, columnspan=1, pady=10, padx=20, sticky="ne")
+        self.note_switch.grid(row=0, column=2, pady=20, padx=15, sticky="nswe")
 
         self.note_switch.deselect()
         self.combobox_1.set("Select device")
@@ -48,23 +48,37 @@ class Track():
 
         self.image_label = customtkinter.CTkLabel(master=self.master_frame, image=self.bg_image)
         self.image_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        self.image_label.grid(row=1, column=0, columnspan=2, pady=10, padx=20, sticky="nwse")
+        self.image_label.grid(row=2, column=0, columnspan=2, pady=10, sticky="nwse")
 
-        recordImg = ImageTk.PhotoImage(Image.open("img/record.png"))
-        stopImg = ImageTk.PhotoImage(Image.open("img/stop.png"))
-        saveImg = ImageTk.PhotoImage(Image.open("img/save.png"))
+        self.buttons_frame = customtkinter.CTkFrame(master=self.master_frame)
+        self.buttons_frame.rowconfigure((0), weight=1)
+        self.buttons_frame.columnconfigure((0,1,2,3), weight=5)
+        self.buttons_frame.grid(row=0, column=1, sticky="nwse")
+
+        recordImg = ImageTk.PhotoImage(Image.open("img/record.png").resize((40,40)))
+        stopImg = ImageTk.PhotoImage(Image.open("img/stop.png").resize((30,30)))
+        saveImg = ImageTk.PhotoImage(Image.open("img/save.png").resize((30,30)))
+        playImg = ImageTk.PhotoImage(Image.open("img/play.png").resize((30,30)))
+
         self.deviceChoice = 0
-        self.recButton = customtkinter.CTkButton(master=self.master_frame, image=recordImg, text="", command=self.record_action)
-        self.recButton.grid(row=2, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
+        self.recButton = customtkinter.CTkButton(master=self.buttons_frame, image=recordImg, fg_color="#353638", hover_color="#222325",
+                                                width=50,height=50,text="", command=self.record_action)
+        self.recButton.grid(row=0, column=0,  sticky="nwse")
 
-        self.stopButton = customtkinter.CTkButton(master=self.master_frame, image=stopImg, text="", command=self.stop_action)
-        self.stopButton.grid(row=2, column=1, columnspan=1, pady=20, padx=20, sticky="nwse")
+        self.stopButton = customtkinter.CTkButton(master=self.buttons_frame, image=stopImg, fg_color="#353638", hover_color="#222325",
+                                                width=50,height=50,text="", command=self.stop_action)
+        self.stopButton.grid(row=0, column=1, sticky="nwse")
  
-        self.saveButton = customtkinter.CTkButton(master=self.master_frame, image=saveImg, text="",command=self.save_score)
-        self.saveButton.grid(row=2, column=2, columnspan=1, pady=20, padx=20, sticky="nwse")
+        self.saveButton = customtkinter.CTkButton(master=self.buttons_frame, image=saveImg, fg_color="#353638", hover_color="#222325",
+                                                width=50,height=50,text="",command=self.save_score)
+        self.saveButton.grid(row=0, column=2, sticky="nwse")
+
+        self.playButton = customtkinter.CTkButton(master=self.buttons_frame, image=playImg, fg_color="#353638", hover_color="#222325",
+                                                width=50,height=50,text="",command=self.play_score)
+        self.playButton.grid(row=0, column=3,  sticky="nwse")
        
-        self.note_label =customtkinter.CTkLabel(master=self.master_frame,text="Acordes/Notas",text_color="white",text_font="Arial")
-        self.note_label.grid(row=1, column=2, columnspan=1, pady=20, padx=20, sticky="nwse")
+        self.note_label =customtkinter.CTkLabel(master=self.master_frame,text="Played note:",text_color="white",text_font="Arial")
+        self.note_label.grid(row=2, column=2,  sticky="nwse")
         
        
     def show_track(self,x):
@@ -111,7 +125,6 @@ class Track():
 
     def stop_action(self):    
         print("stop button")
-        self.rec.reproduce()
         self.rec.stop()
         self.rec.close()
 
@@ -138,6 +151,9 @@ class Track():
         shutil.copy2(os.path.join(FILE_PATH, "tmp/score{}.png".format(self.id)), os.path.join(FILE_PATH,"files/score_{}_{}.png".format(self.id, time.time())))
         #shutil.copy2(PATH +"/img/score{}.png".format(self.id), PATH + "/tmp/")
         self.cleanScore()
+
+    def play_score(self):
+        self.rec.reproduce()    
        
     def cleanScore(self):
         try:
