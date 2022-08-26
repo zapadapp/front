@@ -114,17 +114,20 @@ class Track():
         self.rec = recorder.Recorder("file{}.wav".format(self.id), "score{}".format(self.id))
         self.rec.setup(self.deviceChoice)
 
-        noteThread = Thread(target = self.show_note)
-        noteThread.start()
+        self.noteThread = Thread(target = self.show_note)
+        self.noteThread.start()
 
-        recorderThread = Thread(target = self.rec.record, args =(self.note_q, self.note_switch_var.get()))
-        recorderThread.start()
+        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, self.note_switch_var.get()))
+        self.recorderThread.start()
 
-        imgUpdater = Thread(target = self.refresh_score, args = ())
-        imgUpdater.start()
+        self.imgUpdater = Thread(target = self.refresh_score, args = ())
+        self.imgUpdater.start()
 
     def stop_action(self):    
         print("stop button")
+        self.noteThread.is_alive = False
+        self.recorderThread.is_alive = False
+        self.imgUpdater.is_alive = False
         self.rec.stop()
         self.rec.close()
 
