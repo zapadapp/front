@@ -8,6 +8,7 @@ import time
 import pyaudio
 from queue import Queue
 import shutil
+import turtle
 
 # solve local imports
 import sys
@@ -16,7 +17,7 @@ WORKSPACE = os.path.dirname(FILE_PATH)
 PARSER_PATH = os.path.join(WORKSPACE, "input_parser")
 
 sys.path.insert(0, WORKSPACE)
-from input_parser import recorder
+from input_parser import recorder, drawer
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -42,13 +43,22 @@ class Track():
         self.note_switch.deselect()
         self.combobox_1.set("Select device")
 
-        image = Image.open(FILE_PATH + "/img/score.png").resize((500, 200))
-        #shutil.copy2(PATH +"/img/score.png", PATH + "/tmp/")
-        self.bg_image = ImageTk.PhotoImage(image)
+        # image = Image.open(FILE_PATH + "/img/score.png").resize((500, 200))
+        # self.bg_image = ImageTk.PhotoImage(image)
 
-        self.image_label = customtkinter.CTkLabel(master=self.master_frame, image=self.bg_image)
-        self.image_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        self.image_label.grid(row=2, column=0, columnspan=2, pady=10, sticky="nwse")
+        # self.image_label = customtkinter.CTkLabel(master=self.master_frame, image=self.bg_image)
+        # self.image_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        # self.image_label.grid(row=2, column=0, columnspan=2, pady=10, sticky="nwse")
+        
+        self.score_canvas = turtle.ScrolledCanvas(self.master_frame,width = 800, height = 200)
+        #screen = turtle.TurtleScreen(self.score_canvas)
+        self.score_canvas.grid(row=2, column=0, columnspan=2, pady=10, sticky="nwse")
+        # t = turtle.Turtle(screen)
+
+        self.score_screen = turtle.TurtleScreen(self.score_canvas)
+        self.score_screen.screensize(2000,1500) #added by me
+        t = turtle.RawTurtle(self.score_screen)
+        self.scoreDrawer = drawer.Drawer(t, 800, 200)
 
         self.buttons_frame = customtkinter.CTkFrame(master=self.master_frame)
         self.buttons_frame.rowconfigure((0), weight=1)
@@ -117,33 +127,34 @@ class Track():
         self.noteThread = Thread(target = self.show_note)
         self.noteThread.start()
 
-        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, self.note_switch_var.get()))
+        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, self.note_switch_var.get(), self.scoreDrawer))
         self.recorderThread.start()
 
-        self.imgUpdater = Thread(target = self.refresh_score, args = ())
-        self.imgUpdater.start()
+        #self.imgUpdater = Thread(target = self.refresh_score, args = ())
+        #self.imgUpdater.start()
 
     def stop_action(self):    
         print("stop button")
         self.noteThread.is_alive = False
         self.recorderThread.is_alive = False
-        self.imgUpdater.is_alive = False
+        #self.imgUpdater.is_alive = False
         self.rec.stop()
         self.rec.close()
 
     def refresh_score(self):
-        while True:
-            try:
-                image = Image.open(FILE_PATH + "/tmp/score{}.png".format(self.id)).resize((500, 200))
-                self.bg_image = ImageTk.PhotoImage(image)
+        # while True:
+        #     try:
+        #         image = Image.open(FILE_PATH + "/tmp/score{}.png".format(self.id)).resize((500, 200))
+        #         self.bg_image = ImageTk.PhotoImage(image)
 
-                self.image_label.configure(image=self.bg_image)
-                self.image_label.image = image
-            except OSError as e:
-                # we do not care about this error so we just continue
-                continue
+        #         self.image_label.configure(image=self.bg_image)
+        #         self.image_label.image = image
+        #     except OSError as e:
+        #         # we do not care about this error so we just continue
+        #         continue
         
-            time.sleep(0.1)        
+        #     time.sleep(0.1)  
+        return      
 
     def show_note(self):
         while True:
@@ -151,20 +162,22 @@ class Track():
             self.note_label.configure(text="Played note: {}".format(note))
     
     def save_score(self):
-        shutil.copy2(os.path.join(FILE_PATH, "tmp/score{}.png".format(self.id)), os.path.join(FILE_PATH,"files/score_{}_{}.png".format(self.id, time.time())))
-        #shutil.copy2(PATH +"/img/score{}.png".format(self.id), PATH + "/tmp/")
-        self.cleanScore()
+        self.rec.saveScore(os.path.join("files","new_score{}".format(time.time())))
+        self.score_canvas.postscript(file=os.path.join("files","score{}.ps".format(time.time())), colormode='color')
+        return
 
     def play_score(self):
         self.rec.reproduce()    
        
     def cleanScore(self):
-        try:
-            os.remove(os.path.join(FILE_PATH, "tmp/score{}.png".format(self.id)))
-        except OSError as e:
-            print("could not delete score file")
+        # try:
+        #     os.remove(os.path.join(FILE_PATH, "tmp/score{}.png".format(self.id)))
+        # except OSError as e:
+        #     print("could not delete score file")
 
-        image = Image.open(FILE_PATH + "/img/score.png").resize((500, 200), Image.ANTIALIAS)
-        self.bg_image = ImageTk.PhotoImage(image)
+        # image = Image.open(FILE_PATH + "/img/score.png").resize((500, 200), Image.ANTIALIAS)
+        # self.bg_image = ImageTk.PhotoImage(image)
 
-        self.image_label.configure(image=self.bg_image)  
+        # self.image_label.configure(image=self.bg_image)  
+        self.scoreDrawer.clearScore()
+        return

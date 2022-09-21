@@ -18,7 +18,7 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 
 class App(customtkinter.CTk):
 
-    WIDTH = 950
+    WIDTH = 1200
     HEIGHT = 1100
 
     def __init__(self):
@@ -109,7 +109,7 @@ class App(customtkinter.CTk):
         self.frame_right.columnconfigure(0, weight=1)
 
         # saved_frame will be gridded when pressing Saved button
-        self.saved_frame = customtkinter.CTkFrame(master=self.frame_right)
+        self.saved_frame = customtkinter.CTkFrame(master=self.frame_right, width=700, height=700)
 
         # add_delete_frame will be gridded when pressing Play! button
         #self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
@@ -163,7 +163,7 @@ class App(customtkinter.CTk):
         self.openSavedButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
 
         # create label to show saved score
-        self.savedImgLabel = customtkinter.CTkLabel(master=self.saved_frame, text="")
+        self.savedImgLabel = customtkinter.CTkLabel(master=self.saved_frame, text="", width=700, height=700)
         self.savedImgLabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         self.savedImgLabel.grid(row=1, column=0, columnspan=3, sticky="nwse")
 
@@ -244,7 +244,18 @@ class App(customtkinter.CTk):
     def openSavedImgEvent(self):
         filename = filedialog.askopenfilename(initialdir=os.path.join(FILE_PATH, "files"),title='Select a score')
 
-        image = Image.open(filename).resize((self.saved_frame.winfo_width()-10, 200), Image.ANTIALIAS)
+        image = Image.open(filename)
+
+        # # get size of image
+        # width, height = image.size
+
+        # # we need width to be a bit smaller than the image frame
+        # newWidth = self.saved_frame.winfo_width()-10
+
+        # # math to keep image aspect ratio
+        # newHeight = int((newWidth * height) / width)
+
+        # resizedImg = image.resize((newWidth, newHeight), Image.ANTIALIAS)
         self.savedImg = ImageTk.PhotoImage(image)
         self.savedImgLabel.configure(image=self.savedImg)
 
