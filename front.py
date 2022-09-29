@@ -18,8 +18,8 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 
 class App(customtkinter.CTk):
 
-    WIDTH = 1200
-    HEIGHT = 1100
+    WIDTH = 1920
+    HEIGHT = 1080
 
     def __init__(self):
         super().__init__()
@@ -68,37 +68,37 @@ class App(customtkinter.CTk):
 
         # create play menu button to select the tracks view
         self.play_button = customtkinter.CTkButton(master=self.frame_left,
-                                                text="Play!",
+                                                text="Tocar!",
                                                 command=self.playBtnEvent)
         self.play_button.grid(row=2, column=0, pady=10, padx=20)
 
         # create saved menu button to select the saved files view
         self.saved_button = customtkinter.CTkButton(master=self.frame_left,
-                                                text="Saved",
+                                                text="Partituras",
                                                 command=self.savedBtnEvent)
         self.saved_button.grid(row=3, column=0, pady=10, padx=20)
 
         # create add track menu button to add tracks
         self.add_track_button = customtkinter.CTkButton(master=self.frame_left,
-                                                text="Add track",
+                                                text="Agregar track",
                                                 fg_color="#00A90B",
                                                 hover_color="#009C0A",
                                                 command=self.add_track)
 
         # create delete track menu button to delete tracks
         self.delete_track_button = customtkinter.CTkButton(master=self.frame_left,
-                                                text="Delete track",
+                                                text="Borrar tracks",
                                                 fg_color="#AF0000",
                                                 hover_color="#9C0000",
                                                 command=self.delete_track)
 
         self.label_mode = customtkinter.CTkLabel(master=self.frame_left, text="Appearance Mode:")
-        self.label_mode.grid(row=9, column=0, pady=0, padx=20, sticky="w")
+        #self.label_mode.grid(row=9, column=0, pady=0, padx=20, sticky="w")
 
         self.optionmenu_1 = customtkinter.CTkOptionMenu(master=self.frame_left,
                                                         values=["Light", "Dark", "System"],
                                                         command=self.change_appearance_mode)
-        self.optionmenu_1.grid(row=10, column=0, pady=10, padx=20, sticky="w")
+        #self.optionmenu_1.grid(row=10, column=0, pady=10, padx=20, sticky="w")
 
         # ============ frame_right ============
         # This frame contains the buttons to add and delete tracks, and the frames for the tracks.
@@ -116,8 +116,38 @@ class App(customtkinter.CTk):
 
         # tracks_frame will be gridded when pressing Play! button
         # create frame for add and delete tracks button. This frame will be gridded when play button.
-        #self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
+        self.add_delete_frame = customtkinter.CTkFrame(master=self.frame_right)
       
+        self.add_delete_frame.grid(row=0, column=0, columnspan=3, sticky='nwse')
+
+        recordImg = ImageTk.PhotoImage(Image.open("img/record.png").resize((40,40)))
+        stopImg = ImageTk.PhotoImage(Image.open("img/stop.png").resize((30,30)))
+        saveImg = ImageTk.PhotoImage(Image.open("img/save.png").resize((30,30)))
+        playImg = ImageTk.PhotoImage(Image.open("img/play.png").resize((30,30)))
+
+        self.recButton = customtkinter.CTkButton(master=self.add_delete_frame, image=recordImg, fg_color="#353638", hover_color="#222325",
+                                                width=50,height=50,text="", command=self.recordEvent)
+        self.recButton.grid(row=0, column=0,  sticky="nwse")
+
+        self.stopButton = customtkinter.CTkButton(master=self.add_delete_frame, image=stopImg, fg_color="#353638", hover_color="#222325",
+                                                width=50,height=50,text="", command=self.stopEvent)
+        self.stopButton.grid(row=0, column=1, sticky="nwse")
+ 
+        self.saveButton = customtkinter.CTkButton(master=self.add_delete_frame, image=saveImg, fg_color="#353638", hover_color="#222325",
+                                                width=50,height=50,text="",command=self.saveEvent)
+        self.saveButton.grid(row=0, column=2, sticky="nwse")
+
+        self.playButton = customtkinter.CTkButton(master=self.add_delete_frame, image=playImg, fg_color="#353638", hover_color="#222325",
+                                                width=50,height=50,text="",command=self.playEvent)
+        self.playButton.grid(row=0, column=3,  sticky="nwse")
+
+        self.note_switch_var = customtkinter.StringVar(value="chord") 
+        self.note_switch = customtkinter.CTkSwitch(master=self.add_delete_frame,text="Nota/Acorde",
+                                   variable=self.note_switch_var, onvalue="chord", offvalue="note")
+        self.note_switch.grid(row=0, column=7, pady=20, padx=15, sticky="nswe")
+
+        self.note_switch.deselect()
+
         # create tracks frame
         self.tracks_frame = customtkinter.CTkFrame(master=self.frame_right)
         
@@ -159,7 +189,7 @@ class App(customtkinter.CTk):
         #self.deleteButton.grid(row=0, column=1, columnspan=1, pady=20, padx=20, sticky="nwse")
 
         # create button to open saved files        
-        self.openSavedButton = customtkinter.CTkButton(master=self.saved_frame, text="Select saved score", command=self.openSavedImgEvent)
+        self.openSavedButton = customtkinter.CTkButton(master=self.saved_frame, text="Buscar partitura", command=self.openSavedImgEvent)
         self.openSavedButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
 
         # create label to show saved score
@@ -178,13 +208,23 @@ class App(customtkinter.CTk):
         print("button pressed")   
 
     def delete_track(self):
-        deletedTrack = self.tracks.pop()
-        deletedTrack.hide_track()
+        lt = len(self.tracks)-1
+        for t in range(len(self.tracks)):
+            if self.tracks[lt-t].isSelected():
+                popped = self.tracks.pop(lt-t)
+                popped.hide_track()
 
         # if there are no tracks left we remove the canvas
         if len(self.tracks) == 0:
             self.tracks_canvas.grid_forget()
+            self.idTrack = 0
         
+        self.regridTracks()
+
+    def regridTracks(self):
+        for i in range(len(self.tracks)):
+            self.tracks[i].show_track(i)
+
     def change_appearance_mode(self, new_appearance_mode):
         customtkinter.set_appearance_mode(new_appearance_mode)
 
@@ -201,12 +241,12 @@ class App(customtkinter.CTk):
         track_frame.columnconfigure((0,2,3), weight=1)
         track_frame.columnconfigure(1, weight=5)
 
-
+        print("len tracks {}".format(len(self.tracks)))
         # create a track
         trk = track.Track(track_frame, self.idTrack)
         self.idTrack += 1
-        trk.show_track(len(self.tracks)+1)
         self.tracks.append(trk)
+        trk.show_track(len(self.tracks))
 
         # update the tracks canvas scrollbar region
         self.bbox = self.tracks_canvas.bbox("all") 
@@ -242,7 +282,7 @@ class App(customtkinter.CTk):
         self.tracks_frame.columnconfigure(0, weight=1)
 
     def openSavedImgEvent(self):
-        filename = filedialog.askopenfilename(initialdir=os.path.join(FILE_PATH, "files"),title='Select a score')
+        filename = filedialog.askopenfilename(initialdir=os.path.join(FILE_PATH, "files"),title='Elegir partitura')
 
         image = Image.open(filename)
 
@@ -258,6 +298,26 @@ class App(customtkinter.CTk):
         # resizedImg = image.resize((newWidth, newHeight), Image.ANTIALIAS)
         self.savedImg = ImageTk.PhotoImage(image)
         self.savedImgLabel.configure(image=self.savedImg)
+
+    def recordEvent(self):
+        for i in range(len(self.tracks)):
+            if self.tracks[i].isSelected():
+                self.tracks[i].record_action()
+
+    def stopEvent(self):
+        for i in range(len(self.tracks)):
+            if self.tracks[i].isSelected():
+                self.tracks[i].stop_action()
+
+    def saveEvent(self):
+        for i in range(len(self.tracks)):
+            if self.tracks[i].isSelected():
+                self.tracks[i].save_score()       
+
+    def playEvent(self):
+        for i in range(len(self.tracks)):
+            if self.tracks[i].isSelected():
+                self.tracks[i].play_score()                                           
 
     
 if __name__ == "__main__":
