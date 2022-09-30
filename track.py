@@ -128,7 +128,7 @@ class Track():
 
         self.combobox_1.configure(values= newValues)        
 
-    def record_action(self):
+    def record_action(self, noteChordSwitch):
         self.cleanScore()
         self.note_q = Queue() 
         self.rec = recorder.Recorder("file{}.wav".format(self.id), "score{}".format(self.id))
@@ -137,7 +137,7 @@ class Track():
         self.noteThread = Thread(target = self.show_note)
         self.noteThread.start()
 
-        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, self.note_switch_var.get(), self.scoreDrawer))
+        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, noteChordSwitch, self.scoreDrawer))
         self.recorderThread.start()
 
         #self.imgUpdater = Thread(target = self.refresh_score, args = ())

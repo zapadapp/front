@@ -4,7 +4,9 @@ from tkinter import ttk, filedialog
 import customtkinter
 from PIL import Image, ImageTk
 import os
+from threading import Thread
 import track
+import simpleaudio, time 
 
 # solve local imports
 import sys
@@ -32,6 +34,8 @@ class App(customtkinter.CTk):
         self.title("zapadapp")
         self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
         self.protocol("WM_DELETE_WINDOW", self.on_closing)  # call .on_closing() when app gets closed
+
+        self.metronome_playing = False
 
         # ============ create two frames ============
 
@@ -91,6 +95,22 @@ class App(customtkinter.CTk):
                                                 fg_color="#AF0000",
                                                 hover_color="#9C0000",
                                                 command=self.delete_track)
+
+        self.metronome_label = customtkinter.CTkLabel(master=self.frame_left, text="Metronomo 60bpm")
+        self.metronome_label.grid(row=9, column=0, pady=10, padx=20)
+
+        self.metronome_play = customtkinter.CTkButton(master=self.frame_left,
+                                                text="Reproducir",
+                                                fg_color="#00A90B",
+                                                hover_color="#009C0A",
+                                                command=self.playMetronome)                                        
+        self.metronome_play.grid(row=10, column=0, pady=10, padx=20)
+        self.metronome_stop = customtkinter.CTkButton(master=self.frame_left,
+                                                text="Pausar",
+                                                fg_color="#AF0000",
+                                                hover_color="#9C0000",
+                                                command=self.stopMetronome)                                        
+        self.metronome_stop.grid(row=11, column=0, pady=10, padx=20)
 
         self.label_mode = customtkinter.CTkLabel(master=self.frame_left, text="Appearance Mode:")
         #self.label_mode.grid(row=9, column=0, pady=0, padx=20, sticky="w")
@@ -302,7 +322,7 @@ class App(customtkinter.CTk):
     def recordEvent(self):
         for i in range(len(self.tracks)):
             if self.tracks[i].isSelected():
-                self.tracks[i].record_action()
+                self.tracks[i].record_action(self.note_switch_var.get())
 
     def stopEvent(self):
         for i in range(len(self.tracks)):
@@ -317,7 +337,31 @@ class App(customtkinter.CTk):
     def playEvent(self):
         for i in range(len(self.tracks)):
             if self.tracks[i].isSelected():
-                self.tracks[i].play_score()                                           
+                self.tracks[i].play_score()  
+                                                        
+    def playMetronome(self):
+        if self.metronome_playing == False:
+            self.metronome_playing = True
+            self.metronomeT = Thread(target = self.metronomeThread, args =())
+            self.metronomeT.start()
+
+    def stopMetronome(self):
+        self.metronome_playing = False
+
+    def metronomeThread(self):
+        strong_beat = simpleaudio.WaveObject.from_wave_file('metronome.wav')
+        weak_beat = simpleaudio.WaveObject.from_wave_file('metronome.wav')
+        count = 0
+        while self.metronome_playing:
+            count = count + 1
+            if count == 1:
+                strong_beat.play()
+            else:
+                weak_beat.play()
+            if count == 4:
+                count = 0
+            time.sleep(0.99)
+
 
     
 if __name__ == "__main__":
