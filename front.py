@@ -222,6 +222,9 @@ class App(customtkinter.CTk):
 
     
     def on_closing(self, event=0):
+        self.stopMetronome()
+        self.stopAllEvent()
+        time.sleep(0.5)
         self.destroy()
 
     def button_event(self):
@@ -232,6 +235,7 @@ class App(customtkinter.CTk):
         for t in range(len(self.tracks)):
             if self.tracks[lt-t].isSelected():
                 popped = self.tracks.pop(lt-t)
+                popped.stop_action()
                 popped.hide_track()
 
         # if there are no tracks left we remove the canvas
@@ -275,6 +279,7 @@ class App(customtkinter.CTk):
     def savedBtnEvent(self):
         #self.add_delete_frame.grid_forget()
         self.tracks_frame.grid_forget()
+        self.add_delete_frame.grid_forget()
 
         self.add_track_button.grid_forget()
         self.delete_track_button.grid_forget()
@@ -289,7 +294,7 @@ class App(customtkinter.CTk):
     def playBtnEvent(self):
         self.saved_frame.grid_forget()
         
-        # self.add_delete_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nwse')
+        self.add_delete_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nwse')
         # self.add_delete_frame.rowconfigure(0, weight=1)
         # self.add_delete_frame.columnconfigure((0,1), weight=1)  
         
@@ -329,6 +334,10 @@ class App(customtkinter.CTk):
             if self.tracks[i].isSelected():
                 self.tracks[i].stop_action()
 
+    def stopAllEvent(self):
+        for i in range(len(self.tracks)):
+            self.tracks[i].stop_action()
+
     def saveEvent(self):
         for i in range(len(self.tracks)):
             if self.tracks[i].isSelected():
@@ -349,8 +358,8 @@ class App(customtkinter.CTk):
         self.metronome_playing = False
 
     def metronomeThread(self):
-        strong_beat = simpleaudio.WaveObject.from_wave_file('metronome.wav')
-        weak_beat = simpleaudio.WaveObject.from_wave_file('metronome.wav')
+        strong_beat = simpleaudio.WaveObject.from_wave_file('resources/strong_beat.wav')
+        weak_beat = simpleaudio.WaveObject.from_wave_file('resources/weak_beat.wav')
         count = 0
         while self.metronome_playing:
             count = count + 1

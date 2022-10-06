@@ -29,6 +29,7 @@ class Track():
         self.id = id_track
         self.master_frame = track_frame
         self.note_switch_var = customtkinter.StringVar(value="chord")
+        self.showingNote = False
 
         self.info_subframe = customtkinter.CTkFrame(master=self.master_frame)
       
@@ -54,15 +55,18 @@ class Track():
         # self.image_label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         # self.image_label.grid(row=2, column=0, columnspan=2, pady=10, sticky="nwse")
         
-        self.score_canvas = turtle.ScrolledCanvas(self.master_frame,width = 1600, height = 300)
+        canvas_w = 1600
+        canvas_h = 300
+        self.score_canvas = turtle.ScrolledCanvas(self.master_frame,width = canvas_w, height = canvas_h)
         #screen = turtle.TurtleScreen(self.score_canvas)
         self.score_canvas.grid(row=1, column=0, columnspan=2, pady=10, sticky="nwse")
         # t = turtle.Turtle(screen)
 
         self.score_screen = turtle.TurtleScreen(self.score_canvas)
-        self.score_screen.screensize(2000,1500) #added by me
+        self.score_screen.screensize(canvas_w+1000,canvas_h+500) #added by me
         t = turtle.RawTurtle(self.score_screen)
-        self.scoreDrawer = drawer.Drawer(t, 800, 200)
+        t2 = turtle.RawTurtle(self.score_screen)
+        self.scoreDrawer = drawer.Drawer(t, t2, canvas_w, canvas_h)
 
         self.check_var = customtkinter.StringVar(value="on") 
 
@@ -133,7 +137,8 @@ class Track():
         self.note_q = Queue() 
         self.rec = recorder.Recorder("file{}.wav".format(self.id), "score{}".format(self.id))
         self.rec.setup(self.deviceChoice)
-
+        
+        self.showingNote = True
         self.noteThread = Thread(target = self.show_note)
         self.noteThread.start()
 
@@ -144,12 +149,12 @@ class Track():
         #self.imgUpdater.start()
 
     def stop_action(self):    
-        print("stop button")
-        self.noteThread.is_alive = False
-        self.recorderThread.is_alive = False
-        #self.imgUpdater.is_alive = False
-        self.rec.stop()
-        self.rec.close()
+        self.showingNote == False
+        try:
+            self.rec.stop()
+            self.rec.close()
+        except:
+            print("")    
 
     def refresh_score(self):
         # while True:
@@ -167,7 +172,7 @@ class Track():
         return      
 
     def show_note(self):
-        while True:
+        while self.showingNote == True:
             note = self.note_q.get()
             self.note_label.configure(text="Played note: {}".format(note))
     
