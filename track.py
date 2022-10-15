@@ -133,6 +133,8 @@ class Track():
         self.combobox_1.configure(values= newValues)        
 
     def record_action(self, noteChordSwitch):
+        # we stop just in case user did not stop before starting to record again
+        self.stop_action()
         self.cleanScore()
         self.note_q = Queue() 
         self.rec = recorder.Recorder("file{}.wav".format(self.id), "score{}".format(self.id))
