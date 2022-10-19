@@ -161,13 +161,6 @@ class App(customtkinter.CTk):
                                                 width=50,height=50,text="",command=self.playEvent)
         self.playButton.grid(row=0, column=3,  sticky="nwse")
 
-        self.note_switch_var = customtkinter.StringVar(value="chord") 
-        self.note_switch = customtkinter.CTkSwitch(master=self.add_delete_frame,text="Nota/Acorde",
-                                   variable=self.note_switch_var, onvalue="chord", offvalue="note")
-        self.note_switch.grid(row=0, column=7, pady=20, padx=15, sticky="nswe")
-
-        self.note_switch.deselect()
-
         # create tracks frame
         self.tracks_frame = customtkinter.CTkFrame(master=self.frame_right)
         
@@ -327,7 +320,7 @@ class App(customtkinter.CTk):
     def recordEvent(self):
         for i in range(len(self.tracks)):
             if self.tracks[i].isSelected():
-                self.tracks[i].record_action(self.note_switch_var.get())
+                self.tracks[i].record_action()
 
     def stopEvent(self):
         for i in range(len(self.tracks)):
