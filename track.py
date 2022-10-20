@@ -41,11 +41,6 @@ class Track():
                                                     values=[ "Device 1", "Device 2"], command=self.combobox_func)
         self.combobox_1.grid(row=0, column=2)
 
-        # self.note_switch = customtkinter.CTkSwitch(master=self.master_frame,text="Note/Chord",
-        #                            variable=self.note_switch_var, onvalue="chord", offvalue="note")
-        # self.note_switch.grid(row=0, column=2, pady=20, padx=15, sticky="nswe")
-
-        # self.note_switch.deselect()
         self.combobox_1.set("Elegir dispositivo")
 
         # image = Image.open(FILE_PATH + "/img/score.png").resize((500, 200))
@@ -63,7 +58,8 @@ class Track():
         # t = turtle.Turtle(screen)
 
         self.score_screen = turtle.TurtleScreen(self.score_canvas)
-        self.score_screen.screensize(canvas_w+1000,canvas_h+500) #added by me
+        self.score_screen.delay(0)
+        self.score_screen.screensize(canvas_w+5000,canvas_h+10000) #added by me
         t = turtle.RawTurtle(self.score_screen)
         t2 = turtle.RawTurtle(self.score_screen)
         self.scoreDrawer = drawer.Drawer(t, t2, canvas_w, canvas_h)
@@ -74,35 +70,15 @@ class Track():
                                      variable=self.check_var, onvalue="on", offvalue="off")
 
         checkbox.grid(row=0, column=0)
-        # self.buttons_frame = customtkinter.CTkFrame(master=self.master_frame)
-        # self.buttons_frame.rowconfigure((0), weight=1)
-        # self.buttons_frame.columnconfigure((0,1,2,3), weight=5)
-        # self.buttons_frame.grid(row=0, column=1, sticky="nwse")
-
-        # recordImg = ImageTk.PhotoImage(Image.open("img/record.png").resize((40,40)))
-        # stopImg = ImageTk.PhotoImage(Image.open("img/stop.png").resize((30,30)))
-        # saveImg = ImageTk.PhotoImage(Image.open("img/save.png").resize((30,30)))
-        # playImg = ImageTk.PhotoImage(Image.open("img/play.png").resize((30,30)))
-
-        # self.deviceChoice = 0
-        # self.recButton = customtkinter.CTkButton(master=self.buttons_frame, image=recordImg, fg_color="#353638", hover_color="#222325",
-        #                                         width=50,height=50,text="", command=self.record_action)
-        # self.recButton.grid(row=0, column=0,  sticky="nwse")
-
-        # self.stopButton = customtkinter.CTkButton(master=self.buttons_frame, image=stopImg, fg_color="#353638", hover_color="#222325",
-        #                                         width=50,height=50,text="", command=self.stop_action)
-        # self.stopButton.grid(row=0, column=1, sticky="nwse")
- 
-        # self.saveButton = customtkinter.CTkButton(master=self.buttons_frame, image=saveImg, fg_color="#353638", hover_color="#222325",
-        #                                         width=50,height=50,text="",command=self.save_score)
-        # self.saveButton.grid(row=0, column=2, sticky="nwse")
-
-        # self.playButton = customtkinter.CTkButton(master=self.buttons_frame, image=playImg, fg_color="#353638", hover_color="#222325",
-        #                                         width=50,height=50,text="",command=self.play_score)
-        # self.playButton.grid(row=0, column=3,  sticky="nwse")
-       
+        
         self.note_label =customtkinter.CTkLabel(master=self.info_subframe,text="Nota tocada:",text_color="white",text_font="Arial")
         self.note_label.grid(row=0, column=6,  sticky="nwse")
+
+        self.note_switch = customtkinter.CTkSwitch(master=self.info_subframe,text="Note/Chord",
+                                   variable=self.note_switch_var, onvalue="chord", offvalue="note")
+        self.note_switch.grid(row=0, column=7, pady=20, padx=15, sticky="nswe")
+
+        self.note_switch.deselect()
         
        
     def show_track(self,x):
@@ -132,7 +108,7 @@ class Track():
 
         self.combobox_1.configure(values= newValues)        
 
-    def record_action(self, noteChordSwitch):
+    def record_action(self):
         # we stop just in case user did not stop before starting to record again
         self.stop_action()
         self.cleanScore()
@@ -144,7 +120,9 @@ class Track():
         self.noteThread = Thread(target = self.show_note)
         self.noteThread.start()
 
-        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, noteChordSwitch, self.scoreDrawer))
+        switch_var = self.note_switch_var.get()
+        print("switch var for track {}: {}".format(self.id, switch_var))
+        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, switch_var, self.scoreDrawer))
         self.recorderThread.start()
 
         #self.imgUpdater = Thread(target = self.refresh_score, args = ())
