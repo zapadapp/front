@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import os
 from threading import Thread
 import time
+from datetime import datetime
 import pyaudio
 from queue import Queue
 import shutil
@@ -66,7 +67,7 @@ class Track():
 
         self.check_var = customtkinter.StringVar(value="on") 
 
-        checkbox = customtkinter.CTkCheckBox(master=self.info_subframe, text="", command=self.refresh_score,
+        checkbox = customtkinter.CTkCheckBox(master=self.info_subframe, text="",
                                      variable=self.check_var, onvalue="on", offvalue="off")
 
         checkbox.grid(row=0, column=0)
@@ -134,22 +135,7 @@ class Track():
             self.rec.stop()
             self.rec.close()
         except:
-            print("")    
-
-    def refresh_score(self):
-        # while True:
-        #     try:
-        #         image = Image.open(FILE_PATH + "/tmp/score{}.png".format(self.id)).resize((500, 200))
-        #         self.bg_image = ImageTk.PhotoImage(image)
-
-        #         self.image_label.configure(image=self.bg_image)
-        #         self.image_label.image = image
-        #     except OSError as e:
-        #         # we do not care about this error so we just continue
-        #         continue
-        
-        #     time.sleep(0.1)  
-        return      
+            print("")      
 
     def show_note(self):
         while self.showingNote == True:
@@ -157,8 +143,13 @@ class Track():
             self.note_label.configure(text="Played note: {}".format(note))
     
     def save_score(self):
-        self.rec.saveScore(os.path.join("files","new_score{}".format(time.time())))
-        self.score_canvas.postscript(file=os.path.join("files","score{}.ps".format(time.time())), colormode='color')
+        now = datetime.now() # current date and time
+        timestamp = now.strftime("%d%m%Y-%H%M%S")
+        fileName = "score_{}".format(timestamp)
+        self.rec.saveScore(os.path.join("files",fileName))
+        self.rec.saveMidi(fileName)
+        # self.score_canvas.postscript(file=os.path.join("files","score_{}.ps".format(timestamp)), colormode='color')
+        self.clearUnwantedFiles()
         self.cleanScore()
         return
 
@@ -177,6 +168,17 @@ class Track():
         # self.image_label.configure(image=self.bg_image)  
         self.scoreDrawer.clearScore()
         return
+
+    def clearUnwantedFiles(self):
+        for root, dirs, files in os.walk(os.path.join(FILE_PATH, "files"), topdown=False):
+            for name in files:
+                fileParts = os.path.splitext(name)
+                if len(fileParts) == 2:
+                    if ".png" != fileParts[1] and ".ps" != fileParts[1] and ".mid" != fileParts[1]:
+                        try:
+                            os.remove(os.path.join(root, name))
+                        except OSError as e:
+                            print("could not delete score file")
 
     def isSelected(self):
         return self.check_var.get() == "on"    
