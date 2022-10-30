@@ -108,7 +108,7 @@ class Track():
 
         self.combobox_1.configure(values= newValues)        
 
-    def record_action(self, ):
+    def record_action(self):
         # we stop just in case user did not stop before starting to record again
         self.stop_action()
         self.cleanScore()
@@ -159,6 +159,7 @@ class Track():
     def save_score(self):
         self.rec.saveScore(os.path.join("files","new_score{}".format(time.time())))
         self.score_canvas.postscript(file=os.path.join("files","score{}.ps".format(time.time())), colormode='color')
+        self.cleanScore()
         return
 
     def play_score(self):
