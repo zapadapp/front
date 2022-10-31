@@ -13,6 +13,7 @@ import turtle
 
 # solve local imports
 import sys
+
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 WORKSPACE = os.path.dirname(FILE_PATH)
 PARSER_PATH = os.path.join(WORKSPACE, "input_parser")
@@ -146,7 +147,11 @@ class Track():
         now = datetime.now() # current date and time
         timestamp = now.strftime("%d%m%Y-%H%M%S")
         fileName = "score_{}".format(timestamp)
-        self.rec.saveScore(os.path.join("files",fileName))
+        try:
+            os.mkdir(os.path.join("files",fileName))
+        except:
+            print("could not create path")    
+        self.rec.saveScore(os.path.join("files",fileName,fileName))
         self.rec.saveMidi(fileName)
         # self.score_canvas.postscript(file=os.path.join("files","score_{}.ps".format(timestamp)), colormode='color')
         self.clearUnwantedFiles()
