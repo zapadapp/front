@@ -224,6 +224,13 @@ class App(customtkinter.CTk):
         self.savedImgLabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         self.savedImgLabel.grid(row=2, column=0, columnspan=3, sticky="nwse")
 
+
+        self.accelerateLabel = customtkinter.CTkLabel(master=self.search_play_frame, text="Desacelerar/Acelerar")
+        self.accelerateLabel.grid(row=0, column=2, pady=10, padx=20, sticky="nwse")
+        self.slider = customtkinter.CTkSlider(master=self.search_play_frame, from_=-4, to=4, number_of_steps=9)
+        self.slider.grid(row=0, column=3, columnspan=1, pady=20, padx=20, sticky="nwse")
+
+
         # app default settings
         self.optionmenu_1.set("Dark")
 
@@ -344,8 +351,22 @@ class App(customtkinter.CTk):
             fp = os.path.join('files', fileParts[0]+'.mid')    
             score = music21.converter.Converter()
             score.parseFile(fp)
-            savedScore = score.stream.augmentOrDiminish(1)
+            factor = self.sliderValue()
+            print("factor: {}".format(factor))
+            savedScore = score.stream.augmentOrDiminish(factor)
             savedScore.show('midi') 
+
+    def sliderValue(self):
+        v = self.slider.get()
+    
+        if v == 0:
+            return 1
+
+        if v>0:
+            return (4-v)/4
+
+        if v<0:
+            return abs(v)
 
     def recordEvent(self):
         for i in range(len(self.tracks)):
