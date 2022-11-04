@@ -95,7 +95,11 @@ class Track():
             return
 
         s = choice.split("#")
-        self.deviceChoice = int(s[1])
+        self.deviceChoice = int(s[0])
+        self.channelChoice = int(s[2])
+        print(self.deviceChoice)
+        print(self.channelChoice)
+
 
     def get_devices(self):
         info = self.audio.get_host_api_info_by_index(0)
@@ -105,8 +109,9 @@ class Track():
         # print("Input Device id ", i, " - ", self.audio.get_device_info_by_host_api_device_index(0, i).get('name'))
 
         for i in range(0, numdevices):
-            if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
-                newValues.append("{} #{}".format(self.audio.get_device_info_by_host_api_device_index(0, i).get('name'),i))
+            if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0 and (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) < 4:
+                for j in range(self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')):
+                    newValues.append("{}# {} - Channel #{}".format(i, self.audio.get_device_info_by_host_api_device_index(0, i).get('name'), j+1))
 
         self.combobox_1.configure(values= newValues)        
 
@@ -116,7 +121,7 @@ class Track():
         self.cleanScore()
         self.note_q = Queue() 
         self.rec = recorder.Recorder("file{}.wav".format(self.id), "score{}".format(self.id))
-        self.rec.setup(self.deviceChoice)
+        self.rec.setup(self.deviceChoice, self.channelChoice)
         
         self.showingNote = True
         self.noteThread = Thread(target = self.show_note)
