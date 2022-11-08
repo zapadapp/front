@@ -95,10 +95,9 @@ class Track():
             return
 
         s = choice.split("#")
-        self.deviceChoice = int(s[0])
-        self.channelChoice = int(s[2])
-        print(self.deviceChoice)
-        print(self.channelChoice)
+        # self.deviceChoice = int(s[0])
+        # self.channelChoice = int(s[2])
+        self.deviceChoice = int(s[1])
 
 
     def get_devices(self):
@@ -108,10 +107,16 @@ class Track():
         # show all input devices found.
         # print("Input Device id ", i, " - ", self.audio.get_device_info_by_host_api_device_index(0, i).get('name'))
 
+        # func to detect channels
+        # for i in range(0, numdevices):
+        #     if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0 and (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) < 4:
+        #         for j in range(self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')):
+        #             newValues.append("{}# {} - Channel #{}".format(i, self.audio.get_device_info_by_host_api_device_index(0, i).get('name'), j+1))
+
         for i in range(0, numdevices):
             if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0 and (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) < 4:
                 for j in range(self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')):
-                    newValues.append("{}# {} - Channel #{}".format(i, self.audio.get_device_info_by_host_api_device_index(0, i).get('name'), j+1))
+                    newValues.append("{} #{}".format(self.audio.get_device_info_by_host_api_device_index(0, i).get('name'), i))
 
         self.combobox_1.configure(values= newValues)        
 
@@ -121,7 +126,7 @@ class Track():
         self.cleanScore()
         self.note_q = Queue() 
         self.rec = recorder.Recorder("file{}.wav".format(self.id), "score{}".format(self.id))
-        self.rec.setup(self.deviceChoice, self.channelChoice)
+        self.rec.setup(self.deviceChoice)
         
         self.showingNote = True
         self.noteThread = Thread(target = self.show_note)
