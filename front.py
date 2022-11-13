@@ -14,7 +14,7 @@ import sys
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 WORKSPACE = os.path.dirname(FILE_PATH)
 
-customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 PATH = os.path.dirname(os.path.realpath(__file__))
@@ -249,7 +249,7 @@ class App(customtkinter.CTk):
         for t in range(len(self.tracks)):
             if self.tracks[lt-t].isSelected():
                 popped = self.tracks.pop(lt-t)
-                popped.stop_action()
+                Thread(target = popped.stop_action(), args =(), daemon=True).start()
                 popped.hide_track()
 
         # if there are no tracks left we remove the canvas
@@ -376,7 +376,7 @@ class App(customtkinter.CTk):
     def stopEvent(self):
         for i in range(len(self.tracks)):
             if self.tracks[i].isSelected():
-                self.tracks[i].stop_action()
+                Thread(target = self.tracks[i].stop_action(), args =(), daemon=True).start()
 
     def stopAllEvent(self):
         for i in range(len(self.tracks)):

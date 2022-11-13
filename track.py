@@ -31,6 +31,7 @@ class Track():
         self.id = id_track
         self.master_frame = track_frame
         self.note_switch_var = customtkinter.StringVar(value="chord")
+        self.flute_switch_var = customtkinter.StringVar(value="on")
         self.showingNote = False
 
         self.info_subframe = customtkinter.CTkFrame(master=self.master_frame)
@@ -76,11 +77,17 @@ class Track():
         self.note_label =customtkinter.CTkLabel(master=self.info_subframe,text="Nota tocada:",text_color="white",text_font="Arial")
         self.note_label.grid(row=0, column=6,  sticky="nwse")
 
-        self.note_switch = customtkinter.CTkSwitch(master=self.info_subframe,text="Note/Chord",
+        self.note_switch = customtkinter.CTkSwitch(master=self.info_subframe,text="Nota/Acorde",
                                    variable=self.note_switch_var, onvalue="chord", offvalue="note")
         self.note_switch.grid(row=0, column=7, pady=20, padx=15, sticky="nswe")
 
         self.note_switch.deselect()
+
+        self.flute_switch = customtkinter.CTkSwitch(master=self.info_subframe,text="Mejorar mic",
+                                   variable=self.flute_switch_var, onvalue="on", offvalue="off")
+        self.flute_switch.grid(row=0, column=8, pady=20, padx=15, sticky="nswe")
+
+        self.flute_switch.deselect()
         
        
     def show_track(self,x):
@@ -114,9 +121,9 @@ class Track():
         #             newValues.append("{}# {} - Channel #{}".format(i, self.audio.get_device_info_by_host_api_device_index(0, i).get('name'), j+1))
 
         for i in range(0, numdevices):
-            if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0 and (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) < 4:
-                for j in range(self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')):
-                    newValues.append("{} #{}".format(self.audio.get_device_info_by_host_api_device_index(0, i).get('name'), i))
+            if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0: #and (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) < 4:
+                #for j in range(self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')):
+                newValues.append("{} #{}".format(self.audio.get_device_info_by_host_api_device_index(0, i).get('name'), i))
 
         self.combobox_1.configure(values= newValues)        
 
@@ -132,9 +139,13 @@ class Track():
         self.noteThread = Thread(target = self.show_note)
         self.noteThread.start()
 
-        switch_var = self.note_switch_var.get()
-        print("switch var for track {}: {}".format(self.id, switch_var))
-        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, switch_var, self.scoreDrawer))
+        noteSwitch = self.note_switch_var.get()
+        fluteSwitch = False
+        if self.flute_switch_var.get() == "on":
+            fluteSwitch = True
+
+        print("flute switch: {}".format(fluteSwitch))
+        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, noteSwitch, self.scoreDrawer, fluteSwitch))
         self.recorderThread.start()
 
         #self.imgUpdater = Thread(target = self.refresh_score, args = ())
