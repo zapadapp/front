@@ -7,13 +7,14 @@ import os
 from threading import Thread
 import track
 import simpleaudio, time 
+import music21
 
 # solve local imports
 import sys
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 WORKSPACE = os.path.dirname(FILE_PATH)
 
-customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 PATH = os.path.dirname(os.path.realpath(__file__))
@@ -201,14 +202,34 @@ class App(customtkinter.CTk):
         #self.deleteButton = customtkinter.CTkButton(master=self.add_delete_frame, image=deleteImg, text="", bg_color="#FFF", command=self.delete_track)
         #self.deleteButton.grid(row=0, column=1, columnspan=1, pady=20, padx=20, sticky="nwse")
 
-        # create button to open saved files        
-        self.openSavedButton = customtkinter.CTkButton(master=self.saved_frame, text="Buscar partitura", command=self.openSavedImgEvent)
-        self.openSavedButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
+        self.search_play_frame = customtkinter.CTkFrame(master=self.saved_frame)
+      
+        self.search_play_frame.grid(row=0, column=0, columnspan=3, sticky='nwse')
 
+        searchImg = ImageTk.PhotoImage(Image.open("img/search.png").resize((30,30)))
+        playImg = ImageTk.PhotoImage(Image.open("img/play.png").resize((30,30)))
+
+        # create button to open saved files        
+        self.openSavedButton = customtkinter.CTkButton(master=self.search_play_frame, text="",command=self.openSavedImgEvent, image=searchImg, fg_color="#353638", hover_color="#222325")
+        self.openSavedButton.grid(row=0, column=0, columnspan=1, pady=20, padx=20, sticky="nwse")
+        
+        # create button to play saved files        
+        self.playSavedButton = customtkinter.CTkButton(master=self.search_play_frame, text="", command=self.playSavedImgEvent,image=playImg, fg_color="#353638", hover_color="#222325")
+        self.playSavedButton.grid(row=0, column=1, columnspan=1, pady=20, padx=20, sticky="nwse")
+
+        self.img_subframe = customtkinter.CTkFrame(master=self.saved_frame)
+        self.img_subframe.grid(row=1, column=0, sticky='nwse',pady=50, padx=50)
         # create label to show saved score
-        self.savedImgLabel = customtkinter.CTkLabel(master=self.saved_frame, text="", width=700, height=700)
+        self.savedImgLabel = customtkinter.CTkLabel(master=self.img_subframe, text="", width=700, height=700)
         self.savedImgLabel.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        self.savedImgLabel.grid(row=1, column=0, columnspan=3, sticky="nwse")
+        self.savedImgLabel.grid(row=2, column=0, columnspan=3, sticky="nwse")
+
+
+        self.accelerateLabel = customtkinter.CTkLabel(master=self.search_play_frame, text="Desacelerar/Acelerar")
+        self.accelerateLabel.grid(row=0, column=2, pady=10, padx=20, sticky="nwse")
+        self.slider = customtkinter.CTkSlider(master=self.search_play_frame, from_=-4, to=4, number_of_steps=9)
+        self.slider.grid(row=0, column=3, columnspan=1, pady=20, padx=20, sticky="nwse")
+
 
         # app default settings
         self.optionmenu_1.set("Dark")
@@ -228,7 +249,7 @@ class App(customtkinter.CTk):
         for t in range(len(self.tracks)):
             if self.tracks[lt-t].isSelected():
                 popped = self.tracks.pop(lt-t)
-                popped.stop_action()
+                Thread(target = popped.stop_action(), args =(), daemon=True).start()
                 popped.hide_track()
 
         # if there are no tracks left we remove the canvas
@@ -303,6 +324,7 @@ class App(customtkinter.CTk):
         filename = filedialog.askopenfilename(initialdir=os.path.join(FILE_PATH, "files"),title='Elegir partitura')
 
         image = Image.open(filename)
+        print(filename)
 
         # # get size of image
         # width, height = image.size
@@ -315,7 +337,36 @@ class App(customtkinter.CTk):
 
         # resizedImg = image.resize((newWidth, newHeight), Image.ANTIALIAS)
         self.savedImg = ImageTk.PhotoImage(image)
+        self.savedImgName = filename
         self.savedImgLabel.configure(image=self.savedImg)
+
+    def playSavedImgEvent(self):
+        print(self.savedImgName)
+        if self.savedImgName == "":
+            return
+
+        fileParts = os.path.splitext(self.savedImgName)
+
+        if len(fileParts) == 2:
+            fp = os.path.join('files', fileParts[0]+'.mid')    
+            score = music21.converter.Converter()
+            score.parseFile(fp)
+            factor = self.sliderValue()
+            print("factor: {}".format(factor))
+            savedScore = score.stream.augmentOrDiminish(factor)
+            savedScore.show('midi') 
+
+    def sliderValue(self):
+        v = self.slider.get()
+    
+        if v == 0:
+            return 1
+
+        if v>0:
+            return (4-v)/4
+
+        if v<0:
+            return abs(v)
 
     def recordEvent(self):
         for i in range(len(self.tracks)):
@@ -325,7 +376,7 @@ class App(customtkinter.CTk):
     def stopEvent(self):
         for i in range(len(self.tracks)):
             if self.tracks[i].isSelected():
-                self.tracks[i].stop_action()
+                Thread(target = self.tracks[i].stop_action(), args =(), daemon=True).start()
 
     def stopAllEvent(self):
         for i in range(len(self.tracks)):
@@ -369,4 +420,3 @@ class App(customtkinter.CTk):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
-    input("Press enter to proceed...")

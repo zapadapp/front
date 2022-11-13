@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import os
 from threading import Thread
 import time
+from datetime import datetime
 import pyaudio
 from queue import Queue
 import shutil
@@ -12,6 +13,7 @@ import turtle
 
 # solve local imports
 import sys
+
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 WORKSPACE = os.path.dirname(FILE_PATH)
 PARSER_PATH = os.path.join(WORKSPACE, "input_parser")
@@ -29,6 +31,7 @@ class Track():
         self.id = id_track
         self.master_frame = track_frame
         self.note_switch_var = customtkinter.StringVar(value="chord")
+        self.flute_switch_var = customtkinter.StringVar(value="on")
         self.showingNote = False
 
         self.info_subframe = customtkinter.CTkFrame(master=self.master_frame)
@@ -66,7 +69,7 @@ class Track():
 
         self.check_var = customtkinter.StringVar(value="on") 
 
-        checkbox = customtkinter.CTkCheckBox(master=self.info_subframe, text="", command=self.refresh_score,
+        checkbox = customtkinter.CTkCheckBox(master=self.info_subframe, text="",
                                      variable=self.check_var, onvalue="on", offvalue="off")
 
         checkbox.grid(row=0, column=0)
@@ -74,11 +77,17 @@ class Track():
         self.note_label =customtkinter.CTkLabel(master=self.info_subframe,text="Nota tocada:",text_color="white",text_font="Arial")
         self.note_label.grid(row=0, column=6,  sticky="nwse")
 
-        self.note_switch = customtkinter.CTkSwitch(master=self.info_subframe,text="Note/Chord",
+        self.note_switch = customtkinter.CTkSwitch(master=self.info_subframe,text="Nota/Acorde",
                                    variable=self.note_switch_var, onvalue="chord", offvalue="note")
         self.note_switch.grid(row=0, column=7, pady=20, padx=15, sticky="nswe")
 
         self.note_switch.deselect()
+
+        self.flute_switch = customtkinter.CTkSwitch(master=self.info_subframe,text="Mejorar mic",
+                                   variable=self.flute_switch_var, onvalue="on", offvalue="off")
+        self.flute_switch.grid(row=0, column=8, pady=20, padx=15, sticky="nswe")
+
+        self.flute_switch.deselect()
         
        
     def show_track(self,x):
@@ -93,7 +102,10 @@ class Track():
             return
 
         s = choice.split("#")
+        # self.deviceChoice = int(s[0])
+        # self.channelChoice = int(s[2])
         self.deviceChoice = int(s[1])
+
 
     def get_devices(self):
         info = self.audio.get_host_api_info_by_index(0)
@@ -102,9 +114,16 @@ class Track():
         # show all input devices found.
         # print("Input Device id ", i, " - ", self.audio.get_device_info_by_host_api_device_index(0, i).get('name'))
 
+        # func to detect channels
+        # for i in range(0, numdevices):
+        #     if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0 and (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) < 4:
+        #         for j in range(self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')):
+        #             newValues.append("{}# {} - Channel #{}".format(i, self.audio.get_device_info_by_host_api_device_index(0, i).get('name'), j+1))
+
         for i in range(0, numdevices):
-            if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
-                newValues.append("{} #{}".format(self.audio.get_device_info_by_host_api_device_index(0, i).get('name'),i))
+            if (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0: #and (self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) < 4:
+                #for j in range(self.audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')):
+                newValues.append("{} #{}".format(self.audio.get_device_info_by_host_api_device_index(0, i).get('name'), i))
 
         self.combobox_1.configure(values= newValues)        
 
@@ -120,9 +139,13 @@ class Track():
         self.noteThread = Thread(target = self.show_note)
         self.noteThread.start()
 
-        switch_var = self.note_switch_var.get()
-        print("switch var for track {}: {}".format(self.id, switch_var))
-        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, switch_var, self.scoreDrawer))
+        noteSwitch = self.note_switch_var.get()
+        fluteSwitch = False
+        if self.flute_switch_var.get() == "on":
+            fluteSwitch = True
+
+        print("flute switch: {}".format(fluteSwitch))
+        self.recorderThread = Thread(target = self.rec.record, args =(self.note_q, noteSwitch, self.scoreDrawer, fluteSwitch))
         self.recorderThread.start()
 
         #self.imgUpdater = Thread(target = self.refresh_score, args = ())
@@ -134,22 +157,7 @@ class Track():
             self.rec.stop()
             self.rec.close()
         except:
-            print("")    
-
-    def refresh_score(self):
-        # while True:
-        #     try:
-        #         image = Image.open(FILE_PATH + "/tmp/score{}.png".format(self.id)).resize((500, 200))
-        #         self.bg_image = ImageTk.PhotoImage(image)
-
-        #         self.image_label.configure(image=self.bg_image)
-        #         self.image_label.image = image
-        #     except OSError as e:
-        #         # we do not care about this error so we just continue
-        #         continue
-        
-        #     time.sleep(0.1)  
-        return      
+            print("")      
 
     def show_note(self):
         while self.showingNote == True:
@@ -157,8 +165,17 @@ class Track():
             self.note_label.configure(text="Played note: {}".format(note))
     
     def save_score(self):
-        self.rec.saveScore(os.path.join("files","new_score{}".format(time.time())))
-        self.score_canvas.postscript(file=os.path.join("files","score{}.ps".format(time.time())), colormode='color')
+        now = datetime.now() # current date and time
+        timestamp = now.strftime("%d%m%Y-%H%M%S")
+        fileName = "score_{}".format(timestamp)
+        try:
+            os.mkdir(os.path.join("files",fileName))
+        except:
+            print("could not create path")    
+        self.rec.saveScore(os.path.join("files",fileName,fileName))
+        self.rec.saveMidi(fileName)
+        # self.score_canvas.postscript(file=os.path.join("files","score_{}.ps".format(timestamp)), colormode='color')
+        self.clearUnwantedFiles()
         self.cleanScore()
         return
 
@@ -177,6 +194,17 @@ class Track():
         # self.image_label.configure(image=self.bg_image)  
         self.scoreDrawer.clearScore()
         return
+
+    def clearUnwantedFiles(self):
+        for root, dirs, files in os.walk(os.path.join(FILE_PATH, "files"), topdown=False):
+            for name in files:
+                fileParts = os.path.splitext(name)
+                if len(fileParts) == 2:
+                    if ".png" != fileParts[1] and ".ps" != fileParts[1] and ".mid" != fileParts[1]:
+                        try:
+                            os.remove(os.path.join(root, name))
+                        except OSError as e:
+                            print("could not delete score file")
 
     def isSelected(self):
         return self.check_var.get() == "on"    
